@@ -1,17 +1,17 @@
 // helpers
 
-function getRnd(value, isWithData = true) {
-    if(Array.isArray(value)) {
-        const rndNumber = Math.floor(Math.random() * value.length)
+function getRnd(arr, isWithData = true) {
+    if (Array.isArray(arr)) {
+        const rndNumber = Math.floor(Math.random() * arr.length)
 
-        if(isWithData) {
-            return value[rndNumber].dataset.parking
+        if (isWithData) {
+            return arr[rndNumber].dataset.parking
         } else {
-            return value[rndNumber]
+            return arr[rndNumber]
         }
     }
 
-    return value
+    return arr
 }
 
 function getRndNumber(number) {
@@ -25,7 +25,7 @@ function transformStrToArr(str) {
 function addListener(elem, eventName, fn) {
     let node
 
-    if(typeof elem === 'string') {
+    if (typeof elem === 'string') {
         node = document.querySelector(elem)
         node.addEventListener(eventName, fn)
 
@@ -48,65 +48,59 @@ class Filter {
         this.init()
     }
 
-    isNodeEmpty(value, place) {
-        if(!value.textContent) {
-            value.textContent = `Занято ${place}`
-            return false
-        }
-        return true
+    addTextToParkingPlace(node, place) {
+        node.textContent = `Занято ${place}`
     }
 
-    getNodeWithoutText(arr) {
-        let node
-        let isFinded = false
+    getRndNodeWithoutText(arr) {
+        const arrNodes = []
 
         arr.some(item => {
-            if(!item.textContent && !isFinded) {
-                node = item
-                isFinite = true
-                return
+            if (!item.textContent) {
+                arrNodes.push(item)
             }
         })
 
-        return node
+        return getRnd(arrNodes, false)
+    }
+
+    filterArrByField(field, arr, fieldText) {
+        const filteredPlaces = arr.filter(item => item.dataset.parking.includes(field))
+        const node = this.getRndNodeWithoutText(filteredPlaces)
+
+        this.addTextToParkingPlace(node, fieldText)
+    }
+
+    isHasPlaceByField(field) {
+        if (!this.parkingPlace[field] && field !== 'disabled') {
+            alert('Выбачте нема мест')
+            return
+        } else if (field === 'disabled' && (!this.parkingPlace[field] && !this.parkingPlace['car'])) {
+            alert('Инвалидам здесь не место')
+            return
+        }
     }
 
     addCarToParking(field) {
-        debugger
-        if(field === 'disabled' && !this.parkingPlace[field] 
-        && !this.parkingPlace['car']) {
-            alert('Инвалид Ухади')
-            return
-        }
+        this.isHasPlaceByField(field)
 
-        if(!this.parkingPlace[field]) {
-            alert('Выбачте Нема Мест')
-            return
-        }
-
-        if(field === 'disabled') {
+        if (field === 'disabled') {
             const rnd = getRndNumber(20)
             let fieldText = field
 
-            if(this.parkingPlace[field]) {
-                const place = rnd > 12 ? 'car' : 'disabled'
+            if (this.parkingPlace[field]) {
+                const place = rnd > 12 && this.parkingPlace['car'] ? 'car' : 'disabled'
                 field = place
             } else {
                 field = 'car'
             }
 
-            const filteredPlaces = this.parkingAreas.filter(item => item.dataset.parking.includes(field))
-            const rndItem = getRnd(filteredPlaces, false)
-
-            this.isNodeEmpty(rndItem, fieldText) ? this.isNodeEmpty(this.getNodeWithoutText(filteredPlaces), fieldText) : this.isNodeEmpty(rndItem, fieldText)
+            this.filterArrByField(field, this.parkingAreas, fieldText)
         } else {
-            const filteredPlaces = this.parkingAreas.filter(item => item.dataset.parking.includes(field))
-            const rndItem = getRnd(filteredPlaces, false)
-
-            this.isNodeEmpty(rndItem, field) ? this.isNodeEmpty(this.getNodeWithoutText(filteredPlaces), field) : this.isNodeEmpty(rndItem, field)
+            this.filterArrByField(field, this.parkingAreas, field)
         }
 
-        this.parkingPlace[field]-= 1
+        this.parkingPlace[field] -= 1
     }
 
     calculateParkingEqualPlace(items) {
@@ -119,13 +113,13 @@ class Filter {
         items.forEach(item => {
             const value = item.dataset.parking
 
-            if(transformStrToArr(value).length > 1) {
+            if (transformStrToArr(value).length > 1) {
                 const takeFirstValue = transformStrToArr(value)[0]
-                this.parkingPlace[takeFirstValue]+= 1
+                this.parkingPlace[takeFirstValue] += 1
                 return
             }
 
-            this.parkingPlace[value]+= 1
+            this.parkingPlace[value] += 1
         })
     }
 
@@ -145,12 +139,11 @@ class Parking extends Filter {
     }
 
     render() {
-        if(!this.isFirstInit) {
+        if (!this.isFirstInit) {
             this.addCarToParking(TypeAuto.type)
         }
 
         this.isFirstInit = false
-        console.log(this)
     }
 }
 
@@ -163,8 +156,30 @@ addListener('.js-parking-input', 'input', (e) => {
 })
 
 addListener('.js-parking-add', 'click', () => {
-    if(TypeAuto.type.length >= 3) {
+    if (TypeAuto.type.length >= 3) {
         parkingZone.render()
     }
 })
 
+const classNames = [
+    'header', 'menu', 'menu-item', 'menu-item', 'menu-item',
+    'footer', 'menu', 'link', 'link', 'link', 'link'
+]
+
+function transformArrToObj(arr) {
+    return arr.reduce((acc, next) => {
+        if (!acc[next]) {
+            acc[next] = 1
+            return acc
+        }
+
+        acc[next] += 1
+        return acc
+    }, {})
+}
+
+function getSortedArr(obj) {
+    return Object.keys(obj).sort((a, b) => obj[a] - obj[b]).reverse()
+}
+
+console.log(getSortedArr(transformArrToObj(classNames)))
