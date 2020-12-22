@@ -14,6 +14,10 @@ function getRnd(arr, isWithData = true) {
     return arr
 }
 
+function $(selector) {
+    return typeof selector === 'string' ? document.querySelector(selector) : selector
+}
+
 function getRndNumber(number) {
     return Math.floor(Math.random() * number)
 }
@@ -138,9 +142,14 @@ class Parking extends Filter {
         this.isFirstInit = true
     }
 
-    render() {
+    render(data = {}) {
         if (!this.isFirstInit) {
-            this.addCarToParking(TypeAuto.type)
+            Object.entries(data).forEach(([key, value]) => {
+                for(let i = value; i >= value; value--) {
+                    this.addCarToParking(key)
+                }
+            })
+            this.addCarToParking()
         }
 
         this.isFirstInit = false
@@ -151,14 +160,12 @@ const parkingZone = new Parking('.parking__item')
 
 parkingZone.render()
 
-addListener('.js-parking-input', 'input', (e) => {
-    TypeAuto.type = e.target.value
-})
-
 addListener('.js-parking-add', 'click', () => {
-    if (TypeAuto.type.length >= 3) {
-        parkingZone.render()
-    }
+    parkingZone.render({
+        car: +$('.js-parking-car').value,
+        truck: +$('.js-parking-truck').value,
+        disabled: +$('.js-parking-disabled').value
+    })
 })
 
 const classNames = [
