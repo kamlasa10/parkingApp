@@ -71,7 +71,7 @@ class Filter {
     filterArrByField(field, arr, fieldText) {
         const filteredPlaces = arr.filter(item => item.dataset.parking.includes(field))
         const node = this.getRndNodeWithoutText(filteredPlaces)
-
+        console.log(node)
         this.addTextToParkingPlace(node, fieldText)
     }
 
@@ -142,14 +142,27 @@ class Parking extends Filter {
         this.isFirstInit = true
     }
 
+    notifyUser(objWithParking) {
+        return Object.entries(objWithParking).reduce((acc, [key, value]) => {
+            acc+= `${key}: ${value} `
+
+            return acc
+        }, '')
+    }
+
     render(data = {}) {
         if (!this.isFirstInit) {
             Object.entries(data).forEach(([key, value]) => {
-                for(let i = value; i >= value; value--) {
-                    this.addCarToParking(key)
+                if(value) {
+                    for(let i = value; i; i--) {
+                        this.addCarToParking(key)
+                    }
                 }
             })
-            this.addCarToParking()
+
+            const msg = this.notifyUser(this.parkingPlace)
+
+            alert(msg)
         }
 
         this.isFirstInit = false
@@ -161,11 +174,25 @@ const parkingZone = new Parking('.parking__item')
 parkingZone.render()
 
 addListener('.js-parking-add', 'click', () => {
+    const infoParkingPlace = {
+        car: +$('.js-parking-car').value,
+        truck: +$('.js-parking-truck').value,
+        disabled: +$('.js-parking-disabled').value
+    }
+
+    const res = Object.entries(infoParkingPlace).filter(([key, value]) => parkingZone.parkingPlace[key] < value)
+
+    console.log(res)
+
     parkingZone.render({
         car: +$('.js-parking-car').value,
         truck: +$('.js-parking-truck').value,
         disabled: +$('.js-parking-disabled').value
     })
+
+    $('.js-parking-car').value = ''
+    $('.js-parking-truck').value = ''
+    $('.js-parking-disabled').value = ''
 })
 
 const classNames = [
