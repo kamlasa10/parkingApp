@@ -41,10 +41,6 @@ function addListener(elem, eventName, fn) {
     node.addEventListener(eventName, fn)
 }
 
-class TypeAuto {
-    static type = ''
-}
-
 class Filter {
     constructor(parkingAreas) {
         this.parkingAreas = parkingAreas
@@ -144,34 +140,36 @@ class Parking extends Filter {
 
     notifyUser(objWithParking) {
         return Object.entries(objWithParking).reduce((acc, [key, value]) => {
-            acc+= `${key}: ${value} `
+            if(value < 0) {
+                acc+= `${key}: ${Math.abs(value)} Не запаркованны `
+            }
 
             return acc
         }, '')
     }
 
     render(data = {}) {
-        if (!this.isFirstInit) {
-            Object.entries(data).forEach(([key, value]) => {
-                if(value) {
-                    for(let i = value; i; i--) {
-                        this.addCarToParking(key)
-                    }
+        const msgObj = {}
+        Object.entries(data).forEach(([key, value]) => {
+            msgObj[key] = this.parkingPlace[key] - value
+
+            for(let i = value; i; i--) {
+                if(this.parkingPlace[key]) {
+                    this.addCarToParking(key)
+                    continue
                 }
-            })
+            }
+        })
 
-            const msg = this.notifyUser(this.parkingPlace)
+        const msg = this.notifyUser(msgObj)
 
+        if(msg.length) {    
             alert(msg)
         }
-
-        this.isFirstInit = false
     }
 }
 
 const parkingZone = new Parking('.parking__item')
-
-parkingZone.render()
 
 addListener('.js-parking-add', 'click', () => {
     const infoParkingPlace = {
@@ -179,10 +177,6 @@ addListener('.js-parking-add', 'click', () => {
         truck: +$('.js-parking-truck').value,
         disabled: +$('.js-parking-disabled').value
     }
-
-    const res = Object.entries(infoParkingPlace).filter(([key, value]) => parkingZone.parkingPlace[key] < value)
-
-    console.log(res)
 
     parkingZone.render({
         car: +$('.js-parking-car').value,
